@@ -1,0 +1,24 @@
+{
+	"name": "celebrity-vote-backend",
+	"version": "1.0.0",
+	"description": "Backend server for Celebrity Voting App",
+	"main": "server.js",
+	"scripts": {
+		"start": "node server.js",
+		"dev": "nodemon server.js"
+	},
+	"dependencies": {
+		"cors": "^2.8.5",
+		"express": "^4.18.2",
+		"mongoose": "^7.0.3",
+		"socket.io": "^4.7.2"
+	},
+	"devDependencies": {
+		"nodemon": "^2.0.22"
+	},
+	"engines": {
+		"node": ">=18.0.0"
+	},
+	"author": "Your Name",
+	"license": "MIT"
+}
