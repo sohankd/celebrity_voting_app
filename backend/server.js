@@ -9,12 +9,13 @@ const server = http.createServer(app);
 const io = socketIo(server, {
   cors: { origin: '*' },
 });
+const MONGO_DB_URI = process.env.MONGO_DB_URI || 'mongodb://mongodb/voteApp';
 
 app.use(cors());
 app.use(express.json());
 
 // MongoDB Connection
-mongoose.connect('mongodb://localhost:27017/voteApp', {
+mongoose.connect(MONGO_DB_URI, {
 	useNewUrlParser: true,
 	useUnifiedTopology: true,
 });
