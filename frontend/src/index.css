@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body *{
+    box-sizing: border-box;
+    font-family: "Plus Jakarta Sans", "Noto Sans", sans-serif;
+}
+/* .primary-container{
+    display: flex;
+    flex-flow: row wrap;
+}
+.nomination-category-column{
+    width: 75%;
+    padding: 0 15px;
+}
+.live-voting-results-wrapper{
+    width: 25%;
+    padding: 0 15px;
+}
+.candidates-wrapper{
+    display: flex;
+    flex-flow: row wrap;
+    align-items: center;
+    margin: 0 -15px 30px;
+}
+.candidate-profile{
+    display: block;
+    margin-bottom: 20px;
+    width: 25%;
+    padding: 0 15px;
+}
+img.candidate-profile-image{
+    display: block;
+    max-width: 100%;
+} */
