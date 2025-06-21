@@ -23,6 +23,9 @@ mongoose.connect(MONGO_DB_URI, {
 // Define Schema
 const celebritySchema = new mongoose.Schema({
 	name: String,
+	thumbnail: String,
+	profession: String,
+	gender: String,
 	votes: { type: Number, default: 0 },
 });
 
@@ -30,13 +33,20 @@ const Celebrity = mongoose.model('Celebrity', celebritySchema);
 
 // Seed data (only once)
 app.get('/seed', async (req, res) => {
-	await Celebrity.deleteMany({});
-	await Celebrity.insertMany([
-		{ name: 'Taylor Swift' },
-		{ name: 'Tom Holland' },
-		{ name: 'Zendaya' },
-	]);
-	res.send('Seeded');
+	try {
+		// Getting mock data from personal Postman workspce
+		const response = await fetch(process.env.DB_SEED_SOURCE_URL).then(res => res.ok ? res.json() : []);
+	
+		await Celebrity.deleteMany({});
+		await Celebrity.insertMany(response || []);
+	
+		return res.send('Seeding successful!');
+
+	} catch (error) {
+		console.warn('Failed to seed', error);
+	}
+
+	return res.send('Seeding failed');
 });
 
 // Get all celebrities
@@ -47,12 +57,20 @@ app.get('/api/celebrities', async (req, res) => {
 
 // Vote for celebrity
 app.post('/api/vote/:id', async (req, res) => {
-	const celeb = await Celebrity.findByIdAndUpdate(
-		req.params.id,
-		{ $inc: { votes: 1 } },
-		{ new: true }
-	);
-	res.json(celeb);
+	try {
+		const celeb = await Celebrity.findByIdAndUpdate(
+			req.params.id,
+			{ $inc: { votes: 1 } },
+			{ new: true }
+		);
+
+		return res.json(celeb);
+
+	} catch (error) {
+		console.warn('Mongo DB Error:', error);
+	}
+
+	return res.json({});
 });
 
 // Real-time change stream
@@ -60,6 +78,7 @@ const changeStream = Celebrity.watch();
 
 changeStream.on('change', async () => {
 	const celebs = await Celebrity.find();
+
 	io.emit('votes-updated', celebs);
 });
 
@@ -68,4 +87,4 @@ io.on('connection', (socket) => {
 	socket.on('disconnect', () => console.log('Client disconnected'));
 });
 
-server.listen(4000, () => console.log('Server running on http://localhost:4000'));
+server.listen(process.env.SERVER_PORT, () => console.log(`Server running on http://localhost:${process.env.SERVER_PORT}`));
