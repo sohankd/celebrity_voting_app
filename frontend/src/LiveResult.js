@@ -14,7 +14,7 @@ export default function LiveResult (props){
 							<h3 className="mb-2 text-white text-xl font-bold">Best {title}</h3>
 							{
 								celebrities.map((celeb, index, _celebrities) => {
-									let percentge = parseFloat(voteCount > 0 ? ((100 * celeb['vote']) / voteCount) : 0).toFixed(2);
+									let percentge = parseFloat(voteCount > 0 ? ((100 * celeb['votes']) / voteCount) : 0).toFixed(2);
 
 									return (
 										<div key={celeb.id} data-nomination-title={title}>

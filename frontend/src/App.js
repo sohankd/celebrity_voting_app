@@ -2,25 +2,27 @@ import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 import VoteCategory from './VoteCategory';
 import LiveResult from './LiveResult';
-// import { io } from 'socket.io-client';
+import { io } from 'socket.io-client';
 
-// Direct invocation to localhost or continer URI doesn't work when you're running on docker lab.
-// Instead use the lab SSH URL with exposed server port in `http://<SSH_STRING_BEFORE_@>-<SERVER_PORT>.<SSH_STRING_AFTER_@>
-// If Docker Lab SSH is ip172-18-0-28-d19gllq91nsg0084ri60@direct.labs.play-with-docker.com AND Exposed Server Port is 4000
-// Result: http://ip172-18-0-28-d19gllq91nsg0084ri60-4000.direct.labs.play-with-docker.com
-const SERVER_URL = 'http://ip172-18-0-28-d19gllq91nsg0084ri60-4000.direct.labs.play-with-docker.com';
-// const socket = io(SERVER_URL);
-// const SERVER_URL = 'https://6b2d9484-51c3-4489-ad78-26ea2851231f.mock.pstmn.io'; // Postman Mock Server
+const SERVER_URL = process.env.REACT_APP_SERVER_URL;
+const socket = io(SERVER_URL);
 
 function App() {
 	const [professions, setProfessions] = useState([]);
 
 	useEffect(() => {
+		const fetchCelebs = async () => {
+			const res = await axios.get(`${SERVER_URL}/api/celebrities`);
+			const nominations = processData(res.data);
+
+			setProfessions(nominations);
+		};
+
 		fetchCelebs();
 
 		// Listen for vote updates
 		socket.on('votes-updated', (data) => {
-			setCelebrities(process(data));
+			setProfessions(processData(data));
 		});
 
 		return () => socket.disconnect();
@@ -44,49 +46,11 @@ function App() {
 		return Object.values(nominations);
 	}
 
-	const fetchCelebs = async () => {
-		const res = await axios.get(`${SERVER_URL}/api/celebrities`);
-		const nominations = processData(res.data);
-
-		setProfessions(nominations);
-	};
-
-	// const vote = async (id) => {
-	// 	await axios.post(`${SERVER_URL}/api/vote/${id}`);
-	// 	// No need to manually refresh, server will emit update
-	// };
-
 	const handleVoting = async (event) => {
-		let id = parseInt(event.currentTarget.getAttribute('data-id'));
+		let id = event.currentTarget.getAttribute('data-id');
 
 		await axios.post(`${SERVER_URL}/api/vote/${id}`);
 		// No need to manually refresh, server will emit update
-
-		/* CODE TO HANDLE VOTE WHEN NOT COMMUNICATING WITH SERVER
-		let valueChanged = false;
-		let nominations = Object.assign([], professions);
-
-		for(let nomination of nominations){
-			let {celebrities, voteCount: prevCount} = nomination;
-			let voteCount = 0;
-
-			celebrities.forEach(celeb => {
-				let idMatched = celeb.id === id;
-
-				celeb['vote'] = (celeb['vote'] || 0) + (idMatched ? 1 : 0);
-				voteCount += celeb['vote'];
-			});
-
-			nomination['voteCount'] = voteCount || 0;
-
-			if(prevCount !== voteCount){
-				valueChanged = true;
-				break;
-			}
-		}
-
-		valueChanged && setProfessions(nominations);
-		*/
 	}
 
 	return (
