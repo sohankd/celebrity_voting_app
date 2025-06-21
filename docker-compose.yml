@@ -3,10 +3,12 @@ version: '3.8'
 services:
   mongodb:
     image: mongo:6
-    container_name: mongo
+    container_name: mongodb
     restart: always
     ports:
-      - "27017:27017"
+      - name: database
+        target: 27017
+        published: 27017
     volumes:
       - mongo-data:/data/db
     command: mongod --replSet rs0
@@ -17,23 +19,41 @@ services:
       - mongodb
     entrypoint: ["bash", "-c", "sleep 5 && mongo --host mongodb:27017 --eval 'rs.initiate()'"]
 
-  backend:
+  web-server:
     build: ./backend
-    container_name: backend
+    container_name: voting-server
+    restart: always
     depends_on:
       - mongodb
     ports:
-      - "4000:4000"
+      - name: server
+        target: 4000
+        published: 4000
+        mode: host
     environment:
       - MONGO_URI=mongodb://mongodb:27017/voteApp
+      - SERVER_PORT=4000
+      - DB_SEED_SOURCE_URL=https://6b2d9484-51c3-4489-ad78-26ea2851231f.mock.pstmn.io/api/celebrities
+    networks:
+      - client_server
+      - server_db
 
-  frontend:
+  web_app:
     build: ./frontend
-    container_name: frontend
+    container_name: voting-app
     ports:
-      - "3000:80"
+      - name: web
+        target: 80
+        published: 3000
+        mode: host
     depends_on:
-      - backend
+      - web-server
+    networks:
+      - client_server
 
 volumes:
   mongo-data:
+
+networks:
+  client_server: {}
+  server_db: {}
