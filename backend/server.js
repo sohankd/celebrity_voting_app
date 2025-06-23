@@ -31,23 +31,25 @@ const celebritySchema = new mongoose.Schema({
 
 const Celebrity = mongoose.model('Celebrity', celebritySchema);
 
-// Seed data (only once)
-app.get('/seed', async (req, res) => {
+const autoSeedDB = async () => {
 	try {
+		console.info('ℹ️ Initiating auto seeding of MongoDB replica set...');
+
 		// Getting mock data from personal Postman workspce
 		const response = await fetch(process.env.DB_SEED_SOURCE_URL).then(res => res.ok ? res.json() : []);
 	
 		await Celebrity.deleteMany({});
 		await Celebrity.insertMany(response || []);
 	
-		return res.send('Seeding successful!');
+		console.log('✔️ Seeding successful!');
 
 	} catch (error) {
-		console.warn('Failed to seed', error);
+		console.error('❌ Auto seeding failed', error);
 	}
+};
 
-	return res.send('Seeding failed');
-});
+// Auto seed MongoDB instance
+autoSeedDB();
 
 // Get all celebrities
 app.get('/api/celebrities', async (req, res) => {

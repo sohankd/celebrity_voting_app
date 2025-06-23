@@ -23,6 +23,9 @@ celebrity-vote-app/
 ├── frontend/              # React frontend
 │   ├── src/
 │   └── Dockerfile
+├── docker_lab_backend_app.sh    # Backend App shell script
+├── docker_lab_db_app.sh   # Bckedn App shell script
+├── docker_lab_frontend_app.sh   # Frontend App shell script
 ├── docker-compose.yml     # Docker Compose config
 └── README.md              # This file
 
@@ -90,5 +93,5 @@ This project is open-sourced under the MIT license.
 
 ## 👤 Author
 
-Created by Sohan  
-GitHub: https://github.com/your-username
+Created by Sohan
+GitHub: https://github.com/sohankd
