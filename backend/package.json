@@ -1,6 +1,7 @@
 {
 	"name": "celebrity-vote-backend",
 	"version": "1.0.0",
+	"type": "module",
 	"description": "Backend server for Celebrity Voting App",
 	"main": "server.js",
 	"scripts": {
@@ -9,6 +10,7 @@
 	},
 	"dependencies": {
 		"cors": "^2.8.5",
+		"dotenv": "^16.5.0",
 		"express": "^4.18.2",
 		"mongoose": "^7.0.3",
 		"socket.io": "^4.7.2"
