@@ -1,59 +1,85 @@
 version: '3.8'
 
+name: bollywood_voting_app
+
 services:
+  # MongoDB database
   mongodb:
     image: mongo:6
     container_name: mongodb
-    restart: always
+    restart: unless-stopped
     ports:
-      - name: database
-        target: 27017
+      - target: 27017
         published: 27017
+        protocol: tcp
     volumes:
       - mongo-data:/data/db
-    command: mongod --replSet rs0
+    command: ["--replSet", "rs0"]
+    networks:
+      - server_db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "printjson(db.adminCommand('ping'))"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+      start_period: 10s
 
+  # MongoDB replica set initiator
   mongo-init:
     image: mongo:6
     depends_on:
-      - mongodb
-    entrypoint: ["bash", "-c", "sleep 5 && mongo --host mongodb:27017 --eval 'rs.initiate()'"]
+      mongodb:
+        condition: service_healthy
+    entrypoint: >
+      bash -c "
+        mongosh --host mongodb --eval \"rs.initiate()\";
+        sleep 10;
+      "
+    networks:
+      - server_db
 
+  # Backend server
   web-server:
-    build: ./backend
+    build:
+      context: ./backend
     container_name: voting-server
-    restart: always
+    restart: unless-stopped
     depends_on:
-      - mongodb
+      mongodb:
+        condition: service_healthy
     ports:
-      - name: server
-        target: 4000
+      - target: 4000
         published: 4000
-        mode: host
+        protocol: tcp
     environment:
-      - MONGO_URI=mongodb://mongodb:27017/voteApp
+      - MONGO_DB_URI=mongodb://mongodb:27017/voteApp # Replace it with actual DB URL, if DB is deployed somewhere else
       - SERVER_PORT=4000
-      - DB_SEED_SOURCE_URL=https://6b2d9484-51c3-4489-ad78-26ea2851231f.mock.pstmn.io/api/celebrities
+      - DB_SEED_SOURCE_URL=https://6b2d9484-51c3-4489-ad78-26ea2851231f.mock.pstmn.io/api/celebrities # Postman collection with mock data
     networks:
       - client_server
       - server_db
 
+  # Frontend application (served with nginx, build-time API URL injected)
   web_app:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        - REACT_APP_SERVER_URL=http://ip172-18-0-26-d1e2rgc69qi0009fgtu0-4000.direct.labs.play-with-docker.com # Replace it with actual server URL
     container_name: voting-app
     ports:
-      - name: web
-        target: 80
-        published: 3000
-        mode: host
+      - target: 80         # Inside the container (Nginx)
+        published: 3000    # Exposed on your local machine
+        protocol: tcp
     depends_on:
       - web-server
     networks:
       - client_server
 
+# Persistent volume for MongoDB
 volumes:
   mongo-data:
 
+# Networks to isolate backend and frontend connectivity
 networks:
   client_server: {}
   server_db: {}
